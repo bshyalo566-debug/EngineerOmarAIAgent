@@ -19,17 +19,26 @@ jobs:
         with:
           flutter-version: '3.x'
 
-      - name: Auto Unzip (If ZIP exists)
+      - name: Unzip any zip file
         run: |
-          if [ -f project.zip ]; then
-            unzip project.zip -d extracted_project
-          fi
+          for zip in *.zip; do
+            if [ -f "$zip" ]; then
+              echo "Unzipping $zip..."
+              unzip -o "$zip" -d extracted
+            fi
+          done
 
       - name: Build Flutter APK
         run: |
           PUBSPEC_PATH=$(find . -name "pubspec.yaml" | head -n 1)
+          if [ -z "$PUBSPEC_PATH" ]; then
+            echo "ERROR: Could not find pubspec.yaml anywhere in this repo!"
+            echo "Files in repository:"
+            ls -la
+            exit 1
+          fi
           PROJECT_DIR=$(dirname "$PUBSPEC_PATH")
-          echo "Found project at: $PROJECT_DIR"
+          echo "Found pubspec.yaml at: $PUBSPEC_PATH"
           cd "$PROJECT_DIR"
           flutter pub get
           flutter build apk --release
