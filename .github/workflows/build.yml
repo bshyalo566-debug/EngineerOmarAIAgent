@@ -8,6 +8,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
+      - name: Unzip Project
+        run: unzip project.zip -d extracted_project
+      
       - name: Set up Java
         uses: actions/setup-java@v3
         with:
@@ -20,13 +23,15 @@ jobs:
           flutter-version: '3.x'
           
       - name: Install dependencies
+        working-directory: extracted_project
         run: flutter pub get
         
       - name: Build APK
+        working-directory: extracted_project
         run: flutter build apk --release
         
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: app-release
-          path: build/app/outputs/flutter-apk/app-release.apk
+          path: extracted_project/build/app/outputs/flutter-apk/app-release.apk
