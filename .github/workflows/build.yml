@@ -7,31 +7,35 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
-      - name: Unzip Project
-        run: unzip project.zip -d extracted_project
-      
+
       - name: Set up Java
         uses: actions/setup-java@v3
         with:
           distribution: 'zulu'
           java-version: '17'
-          
+
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.x'
-          
-      - name: Install dependencies
-        working-directory: extracted_project
-        run: flutter pub get
-        
-      - name: Build APK
-        working-directory: extracted_project
-        run: flutter build apk --release
-        
+
+      - name: Auto Unzip (If ZIP exists)
+        run: |
+          if [ -f project.zip ]; then
+            unzip project.zip -d extracted_project
+          fi
+
+      - name: Build Flutter APK
+        run: |
+          PUBSPEC_PATH=$(find . -name "pubspec.yaml" | head -n 1)
+          PROJECT_DIR=$(dirname "$PUBSPEC_PATH")
+          echo "Found project at: $PROJECT_DIR"
+          cd "$PROJECT_DIR"
+          flutter pub get
+          flutter build apk --release
+
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: app-release
-          path: extracted_project/build/app/outputs/flutter-apk/app-release.apk
+          path: "**/build/app/outputs/flutter-apk/app-release.apk"
